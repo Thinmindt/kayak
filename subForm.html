@@ -1,30 +1,68 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		
+		<script type="text/javascript">
+			function makeSendPayload(msg) {
+				httpPost("http://localhost:1234", msg, cb);
+			}
+			
+			function cb(response) {
+				if (response.startsWith("{")) {
+					 
+				}
+				else
+			}
+			
+			function httpPost(url, payload, callback) {
+				var request = new XMLHttpRequest();
+				request.onreadystatechange = function() {
+					if(request.readyState == 4) {
+						if(request.status == 200)
+							callback(request.responseText);
+						else
+						{
+							if(request.status == 0 && request.statusText.length == 0)
+								alert("Request blocked by same-origin policy");
+							else
+								alert("Server returned status " + request.status + ", " + request.statusText);
+						}
+					}
+				};
+				request.open('post', url, true);
+				request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+				request.send(payload);
+			}
+		</script>
 	</head>
 	<body>
-		<form method="post">
+		<form action="makeSendPayload(this.value)">
 			River: <br>
-			<input type="text" name="river"><br>
+			<input type="text" name="river"><br><br>
 			
 			Put in: <br>
-			<input type="text" name="putIn"><br>
+			<input type="text" name="putIn"><br><br>
 			
 			Take out: <br>
-			<input type="text" name="takeOut"><br>
+			<input type="text" name="takeOut"><br><br>
 			
 			Length: <br>
-			<input type="text" name="length"><br>
+			<input type="text" name="length"><br><br>
 			
 			Optimum Water Level: <br>
-			<input type="text" name="optimumLevel"><br>
+			<input type="text" name="optimumLevel"><br><br>
 			
 			Link to Gauge: <br>
-			<input type="text" name="gauge"><br>
+			<input type="text" name="gauge" style="width:400px;"><br><br>
+			
+			Highest difficulty rapid: <br>
+			<input type="radio" name="class" value="1">Class I<br>
+			<input type="radio" name="class" value="2">Class II<br>
+			<input type="radio" name="class" value="3">Class III<br>
+			<input type="radio" name="class" value="4">Class IV<br>
+			<input type="radio" name="class" value="5">Class V<br><br>
 			
 			Description: <br>
-			<input type="text" name="description"><br>
+			<input type="text" name="description" style="height:200px;width:500px;"><br><br>
 			
 			<input type="submit" value="Submit">
 		</form>
