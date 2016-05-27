@@ -97,7 +97,41 @@ class Main {
 		if(url.contains("favicon.ico")) {
 			return "";
 		}
-		
-		return "get is working...";
+		else {
+			File subForm = new File("subForm.html");
+			if(!subFormExists(subForm))
+				return "404 page not found";
+			else {
+				return htmlFileReader(subForm);
+			}
+		}
+	}
+	
+	static boolean subFormExists(File subForm) {
+		if(subForm.exists())
+			return true;
+		else
+			return false;
+	}
+	
+	static String htmlFileReader(File f) {
+		try {
+			FileReader fileReader = new FileReader(f);
+			BufferedReader buffReader = new BufferedReader(fileReader);
+			
+			String line = null;
+			StringBuilder htmlText = new StringBuilder();
+			
+			while((line = buffReader.readLine()) != null) {
+				htmlText.append(line);
+				htmlText.append("\n");
+			}
+			return htmlText.toString();
+		} catch(FileNotFoundException ex) {
+			System.out.println("Couldn't open file " + f);
+		} catch(IOException ex) {
+			System.out.println("Error reading file " + f);
+		}
+		return null;
 	}
 }
