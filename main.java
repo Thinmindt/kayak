@@ -81,19 +81,9 @@ class Main {
 			clientSocket.close();
 		}
 	}
-
-	
-	
-	// build response to POST request
-	static String generatePostReturn(String postRequest) {
-		// replace with handler for all POST form submissions
-		
-		return "post return";
-	}
 	
 	// build page for GETs
 	static String generateGetReturn(String url) {
-		//replace all of this with html input doc parser
 		if(url.contains("favicon.ico")) {
 			return "";
 		}
@@ -126,12 +116,22 @@ class Main {
 				htmlText.append(line);
 				htmlText.append("\n");
 			}
+			
 			return htmlText.toString();
+			
 		} catch(FileNotFoundException ex) {
 			System.out.println("Couldn't open file " + f);
 		} catch(IOException ex) {
 			System.out.println("Error reading file " + f);
 		}
-		return null;
+		
+		return "Problem serving html file reader request.  See console log.";
+	}	
+
+	// build response to POST request
+	static String generatePostReturn(String postRequest) {
+		// replace with handler for all POST form submissions
+		
+		return "post return";
 	}
 }
