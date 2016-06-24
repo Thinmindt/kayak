@@ -24,7 +24,7 @@ class Main {
 			System.out.println("Got a connection!");
 			PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
 			BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-
+			
 			// Receive the request from the client
 			String inputLine;
 			String url = "";

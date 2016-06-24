@@ -1,3 +1,3 @@
 #!/bin/bash
-javac main.java
-java -cp .:/mysql-connector-java-5.1.39-bin.jar Main
+javac main.java Database.java DbAddRiver.java
+java -classpath '.:mysql-connector-java-5.1.39-bin.jar' Main
