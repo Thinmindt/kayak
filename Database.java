@@ -5,7 +5,7 @@ import java.io.*;
 abstract class Database {
 	static final String url = "jdbc:mysql://localhost:3306/kayaktivity";
 	static final String username = "greg";
-	static final String password = "(Critical)<Jack>";
+	static final String password = "<notpassword>";
 	
 	Database() {
 	
