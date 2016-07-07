@@ -5,7 +5,7 @@ import java.io.*;
 abstract class Database {
 	static final String url = "jdbc:mysql://localhost:3306/kayaktivity";
 	static final String username = "greg";
-	static final String password = "<notpassword>";
+	static final String password = "(Critical)<Jack>";
 	
 	Database() {
 	
@@ -34,6 +34,49 @@ abstract class Database {
 		catch (SQLException e) {
 			throw new IllegalStateException("Cannot connect the database!", e);
 		}
+	}
+	
+	// check to see if the rivers table contains any entries
+	public static boolean riversContainsEntries(Connection conn) {
+		Statement stmt = null;
+		ResultSet rs = null;
+		
+		String sqlCommand = "select count(*) from rivers"; 
+		
+		try {
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(sqlCommand);
+			rs.next();
+			if (rs.getInt("count(*)") == 0)
+				return false;
+			else
+				return true;
+		}
+		catch (SQLException ex){
+			// handle any errors
+			System.out.println("SQLException: " + ex.getMessage());
+			System.out.println("SQLState: " + ex.getSQLState());
+			System.out.println("VendorError: " + ex.getErrorCode());
+		}
+		finally {
+			if (rs != null) {
+				try {
+					rs.close();
+				} catch (SQLException sqlEx) { } // ignore
+
+				rs = null;
+			}
+
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException sqlEx) { } // ignore
+
+				stmt = null;
+			}
+		}
+		System.out.println("riversContainsEntries failed");
+		return false;
 	}
 		
 	public static int getLastId(Connection conn) {
@@ -74,17 +117,101 @@ abstract class Database {
 		return -1;
 	}
 	
+	public static int getIdByName(Connection conn, String river) {
+		Statement stmt = null;
+		ResultSet rs = null;
+		
+		String sqlCommand = "SELECT id FROM rivers WHERE name=\"" + river + "\""; 
+		
+		try {
+			System.out.println("Sent to sql: " + sqlCommand);
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(sqlCommand);
+			rs.next();
+			int id = (rs.getInt("id"));
+			System.out.println("ID Retrieved: " + id);
+			return id;
+		}
+		catch (SQLException ex){
+			// handle any errors
+			System.out.println("SQLException: " + ex.getMessage());
+			System.out.println("SQLState: " + ex.getSQLState());
+			System.out.println("VendorError: " + ex.getErrorCode());
+		}
+		finally {
+			if (rs != null) {
+				try {
+					rs.close();
+				} catch (SQLException sqlEx) { } // ignore
+
+				rs = null;
+			}
+
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException sqlEx) { } // ignore
+
+				stmt = null;
+			}
+		}
+		System.out.println("getIdByName failed");
+		return -1;
+	}
+	
+	// update the data for the row of the specified ID with the new name and new accesses
+	public static String updateById(Connection conn, int id, String newName, String newAccesses) {
+		Statement stmt = null;
+		ResultSet rs = null;
+		
+		String sqlCommand = "UPDATE rivers SET name=\"" + newName + "\",access=\"" + newAccesses + "\" WHERE id=" + id; 
+		
+		try {
+			stmt = conn.createStatement();
+			stmt.execute(sqlCommand);
+			return "1";
+		}
+		catch (SQLException ex){
+			// handle any errors
+			System.out.println("SQLException: " + ex.getMessage());
+			System.out.println("SQLState: " + ex.getSQLState());
+			System.out.println("VendorError: " + ex.getErrorCode());
+		}
+		finally {
+			if (rs != null) {
+				try {
+					rs.close();
+				} catch (SQLException sqlEx) { } // ignore
+
+				rs = null;
+			}
+
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException sqlEx) { } // ignore
+
+				stmt = null;
+			}
+		}
+		System.out.println("updateById failed");
+		return "-1";
+	}
+	
 	// add riverToAdd to the database. returns 1 if it worked, -1 if failed.
 	public static String addRiver(Connection conn, String riverToAdd) {
 		Statement stmt = null;
 		ResultSet rs = null;
 		
 		// increment ID's in database
-		int lastId = getLastId(conn);
-		if (lastId == -1) 
-			return "-1";
-		lastId = lastId + 1;
-		
+		int lastId = 0;
+		if (riversContainsEntries(conn) == true) {
+			lastId = getLastId(conn);
+			if (lastId == -1) 
+				return "-1";
+			lastId = lastId + 1;
+		}
+			
 		String sqlCommand = "INSERT INTO rivers (id,name) VALUES (" + lastId + ", '" + riverToAdd + "')"; 
 		
 		try {
@@ -148,8 +275,8 @@ abstract class Database {
 			return "-1";
 		}
 		
-		String newAccessList = null;
 		//check if access already exists and append entry
+		String newAccessList = null;
 		String accessList = getAccesses(conn, river);
 		if (accessList != null) {
 			if (accessList.contains(access))
@@ -165,6 +292,7 @@ abstract class Database {
 		String sqlCommand = "UPDATE rivers SET access=\"" + newAccessList + "\" WHERE name=\"" + river + "\""; 
 		
 		try {
+			System.out.println("Sent to sql: " + sqlCommand);
 			stmt = conn.createStatement();
 			stmt.execute(sqlCommand);
 			return "1";
@@ -243,7 +371,7 @@ abstract class Database {
 		return "-1";
 	}
 		
-	//get list of rivers. returns list of rivers in JSON or -1 if it fails
+	// get list of accesses. takes river name as arguement. returns list of accesses in JSON or -1 if it fails
 	String getAccesses(Connection conn, String river) {
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -279,7 +407,138 @@ abstract class Database {
 				stmt = null;
 			}
 		}
+		System.out.println("getAccessesById failed");
+		return "-1";
+	}
+	
+	// get river name. takes river ID as arguement. returns river name or -1 if it fails
+	String getRiverById(Connection conn, int id) {
+		Statement stmt = null;
+		ResultSet rs = null;
+		
+		String sqlCommand = "SELECT * FROM rivers WHERE id = " + id;
+		
+		try {
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(sqlCommand);
+			rs.next();
+			return rs.getString("name");
+		}
+		catch (SQLException ex){
+			// handle any errors
+			System.out.println("SQLException: " + ex.getMessage());
+			System.out.println("SQLState: " + ex.getSQLState());
+			System.out.println("VendorError: " + ex.getErrorCode());
+		}
+		finally {
+			if (rs != null) {
+				try {
+					rs.close();
+				} catch (SQLException sqlEx) { } // ignore
+
+				rs = null;
+			}
+
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException sqlEx) { } // ignore
+
+				stmt = null;
+			}
+		}
+		System.out.println("getRiverById failed");
+		return "-1";
+	}
+	
+	//get list of accesses. takes river ID as arguement. returns list of accesses in JSON or -1 if it fails
+	String getAccessesById(Connection conn, int id) {
+		Statement stmt = null;
+		ResultSet rs = null;
+		
+		String sqlCommand = "SELECT * FROM rivers WHERE id = " + id;
+		
+		try {
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(sqlCommand);
+			rs.next();
+			return rs.getString("access");
+		}
+		catch (SQLException ex){
+			// handle any errors
+			System.out.println("SQLException: " + ex.getMessage());
+			System.out.println("SQLState: " + ex.getSQLState());
+			System.out.println("VendorError: " + ex.getErrorCode());
+		}
+		finally {
+			if (rs != null) {
+				try {
+					rs.close();
+				} catch (SQLException sqlEx) { } // ignore
+
+				rs = null;
+			}
+
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException sqlEx) { } // ignore
+
+				stmt = null;
+			}
+		}
 		System.out.println("getAccesses failed");
+		return "-1";
+	}
+	
+	// remove access point from specified river. takes a river as input
+	// returns 1 if it works or -1 if it fails
+	String rmRiver(Connection conn, String river) {
+		Statement stmt = null;
+		ResultSet rs = null;
+		
+		// Check if river exists
+		String rivers = getRivers(conn);
+		if (!rivers.contains(river)) {
+			System.out.println("Error removing river, river not found");
+			return "-1";
+		}
+		
+		// Build sqlCommand
+		String sqlCommand = "DELETE FROM rivers WHERE name=\"" + river +"\"";
+		
+		// attempt to do it
+		try {
+			System.out.println("Sent to sql: " + sqlCommand);
+			stmt = conn.createStatement();
+			if (stmt.execute(sqlCommand))
+				System.out.println("removed successfully");
+			return "1";
+		}
+		catch (SQLException ex){
+			// handle any errors
+			System.out.println("SQLException: " + ex.getMessage());
+			System.out.println("SQLState: " + ex.getSQLState());
+			System.out.println("VendorError: " + ex.getErrorCode());
+		}
+		finally {
+			if (rs != null) {
+				try {
+					rs.close();
+				} catch (SQLException sqlEx) { } // ignore
+
+				rs = null;
+			}
+
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException sqlEx) { } // ignore
+
+				stmt = null;
+			}
+		}
+		System.out.println("rmRiver failed");
 		return "-1";
 	}
 	
